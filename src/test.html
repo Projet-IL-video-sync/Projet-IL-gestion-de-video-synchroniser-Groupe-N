@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Socket.IO - Salons</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .card { border: 1px solid #ccc; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    button { margin: 5px 0; padding: 8px 12px; cursor: pointer; }
+    input { padding: 6px; margin-right: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Test des Salons Socket.IO</h1>
+  
+  <div class="card">
+    <h3>Statut de Connexion</h3>
+    <p id="status" style="color: orange;">Connexion en cours...</p>
+    <p>Mon Socket ID : <b id="socket-id">-</b></p>
+  </div>
+
+  <div class="card">
+    <h3>Actions Salon</h3>
+    <div>
+      <input type="text" id="input-nom-salon" placeholder="Nom du salon (ex: Salon Mathias)">
+      <button id="btn-creer">Créer un salon</button>
+    </div>
+    <hr>
+    <div>
+      <input type="text" id="input-code-salon" placeholder="Code du salon (ex: ROOM-8A3Z)">
+      <button id="btn-rejoindre">Rejoindre le salon</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Infos du Salon Actuel</h3>
+    <p>Code Salon : <b id="salon-code">Aucun</b></p>
+    <p>Nom Salon : <span id="salon-nom">-</span></p>
+    <h4>Participants dans ce salon :</h4>
+    <ul id="liste-participants">
+      <li><em>Aucun salon rejoint</em></li>
+    </ul>
+  </div>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const socketIdEl = document.getElementById("socket-id");
+    const salonCodeEl = document.getElementById("salon-code");
+    const salonNomEl = document.getElementById("salon-nom");
+    const listeParticipantsEl = document.getElementById("liste-participants");
+    const btnCreer = document.getElementById("btn-creer");
+    const btnRejoindre = document.getElementById("btn-rejoindre");
+
+    // Initialisation du socket
+    const socket = io("http://localhost:4000", {
+      transports: ["websocket", "polling"]
+    });
+
+    // 1. Connexion et tentative de rejointe auto au F5
+    socket.on("connect", () => {
+      console.log("Connecté au serveur ! ID :", socket.id);
+      statusEl.innerText = "Connecté au serveur Socket.IO";
+      statusEl.style.color = "green";
+      socketIdEl.innerText = socket.id;
+
+      const codeSauvegarde = sessionStorage.getItem("salon_courant");
+      if (codeSauvegarde) {
+        console.log("Reconnexion automatique au salon suite au F5 :", codeSauvegarde);
+        socket.emit("rejoindre_salon", { code: codeSauvegarde });
+      }
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("Erreur de connexion :", err.message);
+      statusEl.innerText = "Erreur de connexion : " + err.message;
+      statusEl.style.color = "red";
+    });
+
+    // 2. Événements des boutons
+    btnCreer.onclick = function() {
+      const nomInput = document.getElementById("input-nom-salon").value;
+      const nom = nomInput ? nomInput : "Salon Sans Nom";
+      console.log("Émission : creer_salon avec le nom ->", nom);
+      socket.emit("creer_salon", { nom: nom });
+    };
+
+    btnRejoindre.onclick = function() {
+      const code = document.getElementById("input-code-salon").value.trim().toUpperCase();
+      if (!code) return alert("Veuillez entrer un code !");
+      console.log("Émission : rejoindre_salon avec le code ->", code);
+      socket.emit("rejoindre_salon", { code: code });
+    };
+
+    // 3. Réception des événements du serveur
+    socket.on("salon_cree", (reponse) => {
+      if (reponse.succes) {
+        console.log("Salon créé avec succès :", reponse.salon);
+        sessionStorage.setItem("salon_courant", reponse.salon.code);
+        afficherSalon(reponse.salon);
+      } else {
+        console.error("Échec de la création du salon :", reponse.message);
+        alert(reponse.message || "Erreur de création");
+      }
+    });
+
+    socket.on("mise_a_jour_salon", (salon) => {
+      console.log("Mise à jour du salon reçue :", salon);
+      sessionStorage.setItem("salon_courant", salon.code);
+      afficherSalon(salon);
+    });
+
+    // NOUVEAU : Gestion des erreurs envoyées par le serveur (ex: salon introuvable)
+    socket.on("erreur_salon", (err) => {
+      console.warn("Erreur salon reçue :", err.message);
+      alert(err.message);
+      // Si le salon n'existe plus, on supprime la clé en mémoire
+      sessionStorage.removeItem("salon_courant");
+    });
+
+    function afficherSalon(salon) {
+      salonCodeEl.innerText = salon.code;
+      salonNomEl.innerText = salon.nom;
+
+      listeParticipantsEl.innerHTML = "";
+      salon.participants.forEach((participantId) => {
+        const li = document.createElement("li");
+        li.innerText = participantId === socket.id ? `${participantId} (Vous)` : participantId;
+        listeParticipantsEl.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
