@@ -8,29 +8,29 @@ datasource db {
 }
 
 model message {
-  id          String   @id @db.Uuid
+  id          String   @id @default(uuid()) @db.Uuid
   room_id     String   @db.Uuid
   user_id     String   @db.Uuid
   content     String
-  created_at  DateTime @db.Timestamp(6)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
   sender_name String?  @db.VarChar(50)
   room        room     @relation(fields: [room_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_message_room")
   user        user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_message_user")
 }
 
 model playlist {
-  id            String          @id @db.Uuid
+  id            String          @id @default(uuid()) @db.Uuid
   room_id       String          @unique @db.Uuid
-  created_at    DateTime        @db.Timestamp(6)
+  created_at    DateTime        @default(now()) @db.Timestamp(6)
   room          room            @relation(fields: [room_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_playlist_room")
   playlist_item playlist_item[]
 }
 
 model playlist_item {
-  id          String   @id @db.Uuid
+  id          String   @id @default(uuid()) @db.Uuid
   playlist_id String   @db.Uuid
   position    Int
-  added_at    DateTime @db.Timestamp(6)
+  added_at    DateTime @default(now()) @db.Timestamp(6)
   video_url   String   @db.VarChar(255)
   video_id    String   @db.VarChar(50)
   title       String   @db.VarChar(255)
@@ -39,11 +39,11 @@ model playlist_item {
 }
 
 model room {
-  id               String    @id @db.Uuid
+  id               String    @id @default(uuid()) @db.Uuid
   description      String?
   max_participants Int
-  is_active        Boolean
-  created_at       DateTime  @db.Timestamp(6)
+  is_active        Boolean   @default(true)
+  created_at       DateTime  @default(now()) @db.Timestamp(6)
   host_id          String    @db.Uuid
   code             String    @unique @db.VarChar(16)
   name             String    @db.VarChar(100)
@@ -53,9 +53,9 @@ model room {
 }
 
 model user {
-  id         String    @id @db.Uuid
-  created_at DateTime  @db.Timestamp(6)
-  updated_at DateTime  @db.Timestamp(6)
+  id         String    @id @default(uuid()) @db.Uuid
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  updated_at DateTime  @updatedAt @db.Timestamp(6)
   username   String    @unique @db.VarChar(50)
   email      String    @unique @db.VarChar(120)
   password   String    @db.VarChar(255)
