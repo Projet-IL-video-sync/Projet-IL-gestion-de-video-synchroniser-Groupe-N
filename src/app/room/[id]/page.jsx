@@ -1,5 +1,3 @@
-"use client";
-
 // Fichier parent des composants : src/app/room/[id]/page.jsx
 import ChatPanel from "@/components/ChatPanel";
 import MemberList from "@/components/MemberList";

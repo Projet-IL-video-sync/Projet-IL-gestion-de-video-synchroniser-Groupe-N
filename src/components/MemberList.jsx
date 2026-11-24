@@ -1,3 +1,6 @@
+"use client";
+
+
 // 1. Fichier enfant : src/components/MemberList.jsx
 export default function MemberList({members}) {
   return (
