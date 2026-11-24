@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { loginUser } from '@/actions/auth';
+import {loginUser} from '@/app/actions/auth';
 
 export default function LoginPage() {
     return (
@@ -9,12 +9,14 @@ export default function LoginPage() {
             <form action={loginUser} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700">E-mail ou Pseudo</label>
-                    <input name="identifier" type="text" required className="w-full border border-gray-300 p-2 rounded text-gray-900" />
+                    <input name="identifier" type="text" required
+                           className="w-full border border-gray-300 p-2 rounded text-gray-900"/>
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Mot de passe</label>
-                    <input name="password" type="password" required className="w-full border border-gray-300 p-2 rounded text-gray-900" />
+                    <input name="password" type="password" required
+                           className="w-full border border-gray-300 p-2 rounded text-gray-900"/>
                 </div>
 
                 <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">

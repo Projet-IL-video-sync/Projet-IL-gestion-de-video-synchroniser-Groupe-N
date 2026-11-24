@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { registerUser } from '@/actions/auth';
+import { registerUser } from '@/app/actions/auth';
 
 export default function RegisterPage() {
     return (
